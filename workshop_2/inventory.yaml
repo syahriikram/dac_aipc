@@ -1,0 +1,7 @@
+all: 
+    hosts:
+        server-0:
+            ansible_host: 159.65.128.18
+            ansible_connection: ssh
+            ansible_user: root
+            ansible_ssh_private_key_file: /home/fred/aipc-mar-22/workshop_2/fred_aipc.txt
