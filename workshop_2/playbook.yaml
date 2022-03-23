@@ -1,0 +1,111 @@
+- name: Connectivity test
+  hosts: all
+  vars:
+    my_list:
+    - one
+    - two
+    - three
+  tasks:
+  - name: Ping the server
+    ping: 
+  # - name: IP address
+  #   debug:
+  #     msg: IP address is {{ ansible_hostname }}
+  # - name: List all the lines
+  #   debug:
+  #     msg: "Debugging Line: - {{ item }}"
+  #   loop:
+  #   - this is a line
+  #   - another line
+  # - name: List all the lines 2
+  #   debug:
+  #     msg: "Debugging Line: - {{ item }}"
+  #   loop: "{{ my_list }}"
+  # - name: List files in /etc
+  #   find:
+  #     paths: /etc
+  #     file_type: file
+  #   register: etc_files
+  # - name: etc_files return value
+  #   debug:
+  #     msg: "{{ item.path }}"
+  #   loop: "{{ etc_files.files }}"
+  # - name: if file exists
+  #   stat:
+  #     path: /etc/host
+  #   register: etc_host
+  # - name: List etc_host
+  #   debug:
+  #     msg: "{{ etc_host.stat.exists }}"
+  - name: Create Code Server Directory
+    file: 
+      path: ~/code-server
+      state: directory
+      owner: root
+      group: users
+      mode: 0755 
+  - name: Download repo from Git
+    get_url:
+      url: https://github.com/coder/code-server/releases/download/v4.2.0/code-server-4.2.0-linux-amd64.tar.gz
+      dest: ~/code-server/code-server-4.2.0-linux-amd64.tar.gz
+  - name: Unarchive the file
+    unarchive:
+      src: ~/code-server/code-server-4.2.0-linux-amd64.tar.gz
+      dest: ~/code-server/
+      remote_src: true
+  - name: Copying to global dir
+    shell:
+      cmd: "sudo cp -r ~/code-server/code-server-4.2.0-linux-amd64 /usr/lib/code-server"
+  - name: link v2
+    file:
+      src: /usr/lib/code-server/bin/code-server 
+      dest: /usr/bin/code-server
+      state: link
+  # - name: link
+  #   shell: 
+  #     cmd: "sudo ln -s /usr/lib/code-server/bin/code-server /usr/bin/code-server"
+  - name: Create user data dir
+    file: 
+      path: /var/lib/code-server
+      state: directory
+      owner: root
+      group: users
+      mode: 0755 
+  - name: Copy over code-server.service
+    ansible.builtin.copy:
+      src: /home/fred/aipc-mar-22/workshop_2/code-server.service.j2
+      dest: /lib/systemd/system/code-server.service
+      owner: root
+      group: users
+      mode: '0755'
+      follow: yes
+  - name: restart code-server
+    systemd:
+      name: code-server
+      enabled:  yes
+      state: restarted
+  - name:
+    apt:
+      name: nginx
+      state: present
+  - name: Copy over code-server.conf
+    ansible.builtin.copy:
+      src: ./code-server.conf.j2
+      dest: /etc/nginx/sites-available/code-server.conf
+      owner: root
+      group: users
+      mode: '0755'
+      follow: yes
+  - name: link 2
+    file:
+      src: /etc/nginx/sites-available/code-server.conf
+      dest: /etc/nginx/sites-enabled/code-server.conf
+      state: link
+  # - name: link
+  #   shell: 
+  #     cmd: "sudo ln -s /etc/nginx/sites-available/code-server.conf /etc/nginx/sites-enabled/code-server.conf"
+  - name: restart nginx
+    systemd:
+      name: nginx
+      enabled: yes
+      state: restarted

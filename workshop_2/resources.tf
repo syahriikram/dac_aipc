@@ -27,9 +27,5 @@ resource digitalocean_droplet ansibledroplet {
         private_key = file(var.private_key)
     }
 
-    # provisioner local-exec {
-    #     command =  "ansible all -i inventory.yaml -m ping"   
-    # }
-
 }
 
