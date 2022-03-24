@@ -17,3 +17,17 @@ variable droplet_region {
     type = string
     default = "sgp1"
 }
+
+source digitalocean mydroplet {
+    api_token = var.DO_token
+    region = var.droplet_region
+    image = var.droplet_image
+    size = var.droplet_size
+    ssh_username = "root"
+}
+
+build {
+    sources = [ 
+        "source.digitalocean.mydroplet"
+    ]
+}
